@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn about the network traffic features, model classes, and prediction workflow used by NetGuard.">
+    <title>Dataset &amp; Insights | NetGuard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+<nav class="site-nav" aria-label="Main navigation">
+    <a class="brand" href="{{ url_for('home') }}"><span class="brand-mark">N</span> NetGuard <span class="brand-light">/ IDS</span></a>
+    <div class="nav-links">
+        <a href="{{ url_for('home') }}">Home</a>
+        <a class="active" href="{{ url_for('dataset') }}">Dataset &amp; insights</a>
+        <a class="nav-cta" href="{{ url_for('home') }}#analyzer">Try the detector <span aria-hidden="true">&rarr;</span></a>
+    </div>
+</nav>
+
+<main class="page-width dataset-main">
+    <section class="page-intro">
+        <p class="eyebrow"><span class="live-dot"></span> DATASET &amp; PROJECT</p>
+        <h1>What the model<br>looks <span>at.</span></h1>
+        <p class="hero-description">
+            The attack labels bundled with this project align with UNSW-NB15, a labeled
+            network intrusion dataset covering normal traffic and multiple attack families.
+            This detector evaluates one traffic record using a selected set of connection
+            and packet measurements from its saved preprocessing pipeline.
+        </p>
+    </section>
+
+    <section class="dataset-gallery" aria-labelledby="dataset-gallery-title">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">DATASET VISUALS</p>
+                <h2 id="dataset-gallery-title">Traffic, in perspective</h2>
+            </div>
+            <p>Explore the class-distribution plots included with this project. Select either chart to view it larger.</p>
+        </div>
+        <div class="gallery-grid">
+            <figure class="gallery-card">
+                <button class="image-expand" type="button"
+                        data-image="{{ url_for('static', filename='images/normal vs attack.png') }}"
+                        data-title="Normal vs Attack Distribution"
+                        aria-label="Enlarge the Normal vs Attack Distribution chart">
+                    <img src="{{ url_for('static', filename='images/normal vs attack.png') }}"
+                         alt="Bar chart comparing the counts for binary labels 0 and 1.">
+                    <span class="expand-hint" aria-hidden="true">View larger <span>&nearr;</span></span>
+                </button>
+                <figcaption>
+                    <strong>Normal vs attack</strong>
+                    <span>Binary class distribution; labels are shown as 0 and 1.</span>
+                </figcaption>
+            </figure>
+            <figure class="gallery-card">
+                <button class="image-expand" type="button"
+                        data-image="{{ url_for('static', filename='images/attack category distribution.png') }}"
+                        data-title="Attack Category Distribution"
+                        aria-label="Enlarge the Attack Category Distribution chart">
+                    <img src="{{ url_for('static', filename='images/attack category distribution.png') }}"
+                         alt="Bar chart showing counts for Normal, Generic, Exploits, Fuzzers, DoS, Reconnaissance, Analysis, Backdoor, Shellcode, and Worms.">
+                    <span class="expand-hint" aria-hidden="true">View larger <span>&nearr;</span></span>
+                </button>
+                <figcaption>
+                    <strong>Attack category distribution</strong>
+                    <span>Counts across the categories shown in the supplied plot.</span>
+                </figcaption>
+            </figure>
+        </div>
+    </section>
+
+    <section class="insight-grid" aria-label="Feature summary">
+        <article class="insight-card">
+            <span class="insight-value">{{ feature_count }}</span>
+            <span class="insight-label">selected features</span>
+            <p>A compact input set passed to the saved models.</p>
+        </article>
+        <article class="insight-card">
+            <span class="insight-value">{{ numerical_count }}</span>
+            <span class="insight-label">numerical</span>
+            <p>Packet, byte, timing, and connection-count measurements.</p>
+        </article>
+        <article class="insight-card">
+            <span class="insight-value">{{ categorical_count }}</span>
+            <span class="insight-label">categorical</span>
+            <p>Protocol, service, and connection state.</p>
+        </article>
+    </section>
+
+    <section class="visualization-panel">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">FEATURE COMPOSITION</p>
+                <h2>Inputs at a glance</h2>
+            </div>
+            <p>This chart compares the number of input fields by type. It does not represent class frequency or model accuracy.</p>
+        </div>
+        <div class="chart-layout">
+            <div class="feature-chart" role="img" aria-label="{{ numerical_count }} numerical features and {{ categorical_count }} categorical features, {{ feature_count }} features total">
+                <div class="chart-bar">
+                    <span class="bar-numeric" style="width: {{ (numerical_count / feature_count * 100)|round(1) }}%"></span>
+                    <span class="bar-categorical" style="width: {{ (categorical_count / feature_count * 100)|round(1) }}%"></span>
+                </div>
+                <div class="chart-axis"><span>0 fields</span><span>{{ feature_count }} fields</span></div>
+                <div class="chart-legend">
+                    <span><i class="legend-swatch numeric-swatch"></i>Numerical <strong>{{ numerical_count }}</strong></span>
+                    <span><i class="legend-swatch categorical-swatch"></i>Categorical <strong>{{ categorical_count }}</strong></span>
+                </div>
+            </div>
+            <div class="feature-groups">
+                <div><span class="group-icon numeric-icon">#</span><p><strong>Numerical</strong><small>Examples: sttl, sbytes, dpkts</small></p></div>
+                <div><span class="group-icon categorical-icon">Aa</span><p><strong>Categorical</strong><small>proto, service, state</small></p></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="dataset-details">
+        <article class="detail-panel">
+            <p class="eyebrow">THE PROJECT</p>
+            <h2>Two steps from record to prediction</h2>
+            <p>Numerical values are scaled and categorical values are encoded using the saved preprocessing objects. The binary XGBoost classifier first predicts normal or attack traffic. If an attack is detected, the multiclass classifier predicts its category.</p>
+            <div class="pipeline" aria-label="Prediction workflow">
+                <span>Traffic record</span><i aria-hidden="true">&rarr;</i>
+                <span>Preprocessing</span><i aria-hidden="true">&rarr;</i>
+                <span>Binary model</span><i aria-hidden="true">&rarr;</i>
+                <span>Attack class</span>
+            </div>
+        </article>
+        <article class="detail-panel class-panel">
+            <p class="eyebrow">LABELS IN THE MODEL</p>
+            <h2>Prediction classes</h2>
+            <p>The saved label encoder contains these classes. The binary classifier decides whether traffic is normal or an attack; the multiclass model supplies a category for detected attacks.</p>
+            <div class="label-list">
+                {% for label in attack_labels %}
+                    <span class="class-chip {% if label == 'Normal' %}normal-chip{% endif %}">{{ label }}</span>
+                {% endfor %}
+            </div>
+        </article>
+    </section>
+
+    <section class="dataset-note">
+        <span class="note-icon">i</span>
+        <p><strong>About these visualizations</strong><br>The distribution plots are static images included with the project; they are not generated from live traffic or recomputed by this app. The feature chart reflects the selected input fields in the saved preprocessor.</p>
+    </section>
+
+    <div class="page-actions">
+        <a class="button button-primary" href="{{ url_for('home') }}#analyzer">Try the detector <span aria-hidden="true">&rarr;</span></a>
+        <a class="text-link" href="{{ url_for('home') }}">Back to project home</a>
+    </div>
+</main>
+
+<footer class="site-footer page-width">
+    <span>NETGUARD <span class="brand-light">/ NETWORK INTRUSION DETECTION</span></span>
+    <a href="{{ url_for('home') }}">Project home</a>
+</footer>
+
+<dialog class="image-dialog" aria-label="Expanded dataset chart">
+    <div class="dialog-toolbar">
+        <p class="eyebrow" id="expanded-image-title">DATASET CHART</p>
+        <button class="dialog-close" type="button" aria-label="Close enlarged chart">&times;</button>
+    </div>
+    <img class="dialog-image" src="" alt="">
+</dialog>
+
+<script>
+    const imageDialog = document.querySelector('.image-dialog');
+    const expandedImage = imageDialog.querySelector('.dialog-image');
+    const expandedTitle = imageDialog.querySelector('#expanded-image-title');
+
+    document.querySelectorAll('.image-expand').forEach((button) => {
+        button.addEventListener('click', () => {
+            const image = button.querySelector('img');
+            expandedImage.src = button.dataset.image;
+            expandedImage.alt = image.alt;
+            expandedTitle.textContent = button.dataset.title;
+            imageDialog.showModal();
+        });
+    });
+
+    imageDialog.querySelector('.dialog-close').addEventListener('click', () => {
+        imageDialog.close();
+    });
+
+    imageDialog.addEventListener('click', (event) => {
+        if (event.target === imageDialog) {
+            imageDialog.close();
+        }
+    });
+</script>
+</body>
+</html>
